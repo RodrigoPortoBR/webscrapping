@@ -38,6 +38,13 @@ class PriceMonitor:
             config_file: Caminho para o arquivo de configuração
         """
         self.config = self._load_config(config_file)
+        
+        # Override email password from environment variable if available (for GitHub Actions)
+        import os
+        env_password = os.environ.get('EMAIL_PASSWORD')
+        if env_password:
+            self.config['email']['sender_password'] = env_password
+            
         self.db = PriceDatabase()
         self.notifier = EmailNotifier(self.config['email'])
         

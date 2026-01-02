@@ -36,8 +36,7 @@ jobs:
         
     - name: Run Price Monitor
       env:
-        # If needed, you can use secrets for sensitive config
-        # EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
         HEADLESS: "true"
       run: |
         python price_monitor.py --once
