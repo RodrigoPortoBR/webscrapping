@@ -12,9 +12,16 @@ class SeleniumScraper:
     def __init__(self):
         self.chrome_options = uc.ChromeOptions()
         # Enable headless for automated operation. Some sites may still block.
-        self.chrome_options.add_argument('--headless=new')
+        # Use simple os.environ check or default to headless=new for stability
+        import os
+        if os.environ.get('HEADLESS', 'false').lower() == 'true':
+             self.chrome_options.add_argument('--headless=new')
+        
         self.chrome_options.add_argument('--no-sandbox')
         self.chrome_options.add_argument('--disable-dev-shm-usage')
+        self.chrome_options.add_argument('--disable-gpu')
+        self.chrome_options.add_argument('--window-size=1920,1080')
+        self.chrome_options.add_argument('--start-maximized')
         # Let explicit UA be handled by uc or set if needed. Removing for now to avoid mismatch.
         # self.chrome_options.add_argument('user-agent=...')
         
