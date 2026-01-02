@@ -1,0 +1,100 @@
+# Configuração do Monitor de Preços - Máquinas de Café Sage
+# Moeda: EUR (assumido baseados nos links e pedido do usuário)
+
+# Global settings
+settings:
+  # Intervalo de segurança entre requisições (segundos)
+  request_delay: 5
+  
+  # User-Agent para rotação (opcional)
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+# Lista de produtos para monitorar
+products:
+  - name: "Sage Barista Express (Fnac PT)"
+    store: "Fnac Portugal"
+    url: "https://www.fnac.pt/Maquina-de-Cafe-Manual-Sage-Barista-Express-Pequeno-Almoco-Cafe-Maquina-de-cafe-expresso-manual/a8598971?oref=00000000-0000-0000-0000-000000000000"
+    max_price: 600.00
+
+  - name: "Sage Barista Express (El Corte Ingles)"
+    store: "El Corte Ingles"
+    url: "https://www.elcorteingles.pt/electrodomesticos/A41444771-maquina-de-cafe-expresso-manual-sage-ses875bss2eeu1a-machine-the-barista-express-de-2400-w-e-de-15-bar-cafe-em-grao-aco-inox-escovado/?parentCategoryId=5007.14361453024&color=Sin+especificar"
+    max_price: 600.00
+
+  # DISABLED: DataDome protection blocks automated scraping
+  #- name: "Sage Barista Express Impress (Fnac PT)"
+  #  store: "Fnac Express Impress"
+  #  url: "https://www.fnac.pt/Maquina-de-Cafe-Manual-Sage-The-Barista-Express-Impress-Aco-Inoxidavel-Escovado-Pequeno-Almoco-Cafe-Maquina-de-cafe-expresso-manual/a10309380"
+  #  max_price: 600.00
+
+  # DISABLED: Sage official site shows product info only, no price/purchase option
+  #- name: "Sage Barista Express (Official)"
+  #  store: "Sage"
+  #  url: "https://www.sageappliances.com/pt-pt/product/bes870"
+  #  max_price: 600.00
+
+  - name: "Sage Barista Express (Worten)"
+    store: "Worten"
+    url: "https://www.worten.pt/produtos/maquina-de-cafe-sage-the-barista-express-cafe-grao-7395624"
+    max_price: 600.00
+
+  - name: "Sage Barista Express (Barista Espresso)"
+    store: "Barista Espresso"
+    url: "https://barista-espresso.pt/products/sage-barista-express"
+    max_price: 600.00
+
+  - name: "Sage Barista Express (Ineffable)"
+    store: "Ineffable Coffee"
+    url: "https://ineffablecoffee.com/products/sage-barista-express?srsltid=AfmBOopiSQEV9llzxF23BpV9sZ0gGxe2G7u0uZb3sPcRUIuU1PubsgJH"
+    max_price: 600.00
+
+  - name: "Sage Barista Express (Coffee King)"
+    store: "Coffee King"
+    url: "https://coffeekingdirect.eu/en/products/the-barista-express-sage?srsltid=AfmBOoqzS147AFMiDegmk-_MLUWWxLvZSnWTUawQCss-s5JpbBIuraWk"
+    max_price: 600.00
+
+  - name: "Sage Barista Express (Crema Shop)"
+    store: "Crema Shop"
+    url: "https://www.cremashop.eu/pt/products/sage/the-barista-express/2991"
+    max_price: 600.00
+
+  - name: "Sage Barista Express (MHR)"
+    store: "MHR"
+    url: "https://www.mhr.pt/p3-p-887752-maquina-de-cafe-sage-espresso-machine-the-barista-express-ses875bss2eeu1a-pt"
+    max_price: 600.00
+
+  - name: "Sage Barista Express (Darty)"
+    store: "Darty"
+    url: "https://darty.pt/products/maquina-de-cafe-manual-sage-barista-express"
+    max_price: 600.00
+
+  - name: "Sage Barista Express (Sage Appliances)"
+    store: "Sage Appliances"
+    url: "https://www.sageappliances.com/pt-pt/product/bes870"
+    max_price: 600.00
+
+# Configurações de email (Mantidos do anterior, assumindo reuso)
+email:
+  provider: "gmail"
+  smtp_server: "smtp.gmail.com"
+  smtp_port: 587
+  sender_email: "rodrigogpp@gmail.com"
+  # Assegure-se de que a senha está correta ou use variáveis de ambiente
+  sender_password: "soidgimqihgsismb" 
+  recipient_email: "rodrigogpp@gmail.com"
+
+# Configurações de alerta padrão (fallback)
+default_alert:
+  type: "threshold"
+  max_price: 600.00
+
+# Configurações de execução
+scheduling:
+  scheduled_times:
+    - "12:00"
+    - "18:00"
+  run_once: false
+
+selenium:
+  headless: true
+  page_timeout: 30

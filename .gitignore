@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.log
+price_history.json
+database.json
+debug_page.html
+.vscode/
+.idea/
