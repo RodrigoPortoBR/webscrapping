@@ -28,13 +28,15 @@ class GenericScraper:
             
             price = self._find_price(soup)
             name = self._find_name(soup)
+            in_stock = self._find_stock(soup)
             
             if price:
                 return {
                     'price': price,
                     'product_name': name or "Unknown Product",
                     'url': url,
-                    'currency': 'EUR' # Defaulting to EUR as per user request context
+                    'currency': 'EUR', # Defaulting to EUR as per user request context
+                    'in_stock': in_stock
                 }
             
             return None
@@ -42,6 +44,96 @@ class GenericScraper:
         except Exception as e:
             logger.error(f"Error scraping {url}: {e}")
             return None
+
+    def _find_stock(self, soup: BeautifulSoup) -> bool:
+        """
+        Attempts to find if product is in stock.
+        Returns True by default if no clear 'out of stock' indicator is found.
+        """
+        # Strategy 1: OpenGraph / Meta tags
+        availability = soup.find('meta', property='og:availability') or \
+                       soup.find('meta', property='product:availability') or \
+                       soup.find('meta', attrs={'name': 'availability'})
+        
+        if availability and availability.get('content'):
+            content = availability['content'].lower()
+            if any(x in content for x in ['instock', 'in stock', 'available', 'disponivel', 'disponível']):
+                return True
+            if any(x in content for x in ['oos', 'out of stock', 'unavailable', 'esgotado', 'indisponivel']):
+                return False
+
+        # Strategy 2: Schema.org JSON-LD
+        for script in soup.find_all('script', type='application/ld+json'):
+            try:
+                data = json.loads(script.string)
+                # Helper to check availability in schema dict
+                def check_schema_stock(obj):
+                    if isinstance(obj, dict):
+                        avail = obj.get('availability')
+                        if isinstance(avail, str):
+                            if 'InStock' in avail: return True
+                            if 'OutOfStock' in avail: return False
+                    return None
+
+                if isinstance(data, dict):
+                    if data.get('@type') == 'Product':
+                        offers = data.get('offers')
+                        if isinstance(offers, (dict, list)):
+                            res = check_schema_stock(offers if isinstance(offers, dict) else (offers[0] if offers else {}))
+                            if res is not None: return res
+                elif isinstance(data, list):
+                    for item in data:
+                        if isinstance(item, dict) and item.get('@type') == 'Product':
+                            res = check_schema_stock(item.get('offers'))
+                            if res is not None: return res
+            except:
+                continue
+
+        # Strategy 3: Common keywords in page text
+        # We look for "out of stock" patterns first to be safe
+        out_of_stock_patterns = [
+            'esgotado', 'indisponível', 'indisponivel', 'fora de stock', 
+            'out of stock', 'sold out', 'not available', 'indisponibile',
+            'encomenda especial', 'feito por encomenda', 'avisar-me', 
+            'order from supplier', 'encomenda a fornecedor', 'product-unavailable'
+        ]
+        
+        # Check specific containers first (buttons, status labels)
+        # Increased search scope for text checks
+        stock_elements = soup.find_all(['span', 'div', 'p', 'button', 'a'])
+        for elem in stock_elements:
+            text = elem.get_text(strip=True).lower()
+            if any(p in text for p in out_of_stock_patterns):
+                # Verify it's not a small disclaimer but looks like a status
+                if len(text.split()) < 10: # Status labels are usually short
+                    return False
+        
+        # Special check for Fnac: often has a button "Avisar-me" or text "Indisponível online"
+        page_text = soup.get_text().lower()
+        if 'indisponível online' in page_text or 'stock esgotado' in page_text:
+            return False
+
+        # Strategy 4: Check "Add to Cart" button existence/state
+        # Improved regex to catch more variations
+        cart_patterns = r'comprar|carrinho|cesto|adicionar|add to cart|buy|purchase|encomendar'
+        cart_buttons = soup.find_all(['button', 'input', 'a'], string=re.compile(cart_patterns, re.IGNORECASE))
+        
+        if cart_buttons:
+            for btn in cart_buttons:
+                # Check if button is visibly disabled
+                if 'disabled' in btn.attrs or 'disabled' in ' '.join(btn.get('class', [])).lower():
+                    continue 
+                # Check for hidden or aria-disabled
+                if btn.get('aria-disabled') == 'true' or 'hidden' in btn.attrs:
+                    continue
+                return True # Found an active buying button
+
+        # Fallback: if we have "encomendar" button but it's marked as encomenda especial above,
+        # we already returned False in Strategy 3.
+        
+        # Default logic: if we found a price, we assumed True unless we found an OOS marker.
+        # But if we can't find ANY buying button, it's safer to assume False for automated monitoring.
+        return len(cart_buttons) > 0
 
     def _find_price(self, soup: BeautifulSoup) -> Optional[float]:
         # Strategy 1: OpenGraph / Meta tags

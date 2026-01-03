@@ -101,7 +101,7 @@ class PriceMonitor:
                     
                     data['store'] = store
                     prices.append(data)
-                    logger.info(f"✓ {store}: R$ {data['price']} ({data['product_name']})")
+                    logger.info(f"✓ {store}: € {data['price']} ({data['product_name']})")
                 else:
                     logger.warning(f"✗ Falha ao obter preço de {store} (Genérico e Selenium)")
             except Exception as e:
@@ -145,16 +145,25 @@ class PriceMonitor:
             if not current_price:
                 continue
             
-            opportunity = None
+            # Lógica de oportunidade:
+            # 1. Deve estar em estoque
+            # 2. Preço deve ser estritamente menor que o limite (600 por padrão)
             
-            # Lógica simples de threshold
-            if current_price <= max_price:
+            in_stock = price_data.get('in_stock', True)
+            
+            if not in_stock:
+                logger.info(f"⏩ {store}: Ignorado (Sem estoque)")
+                continue
+
+            if current_price < max_price:
                 opportunity = price_data.copy()
-                opportunity['reason'] = f'Preço {current_price} abaixo do alvo de {max_price}'
+                opportunity['reason'] = f'Preço {current_price} abaixo do alvo de {max_price} e em estoque'
             
             if opportunity:
                 opportunities.append(opportunity)
                 logger.info(f"🎯 Oportunidade: {store} - {current_price} - {opportunity['reason']}")
+            else:
+                logger.info(f"⏳ {store}: Preço {current_price} (Limite: {max_price})")
         
         return opportunities
     

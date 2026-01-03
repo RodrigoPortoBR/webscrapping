@@ -102,24 +102,27 @@ class EmailNotifier:
         </head>
         <body>
             <div class="header">
-                <h1>🎾 Alerta de Preço - Tênis Asics Gel Resolution X</h1>
+                <h1>☕ Alerta de Preço - Monitor de Cafeteiras Sage</h1>
             </div>
             <div class="content">
-                <p>Boa notícia! Encontramos oportunidades de compra para o tênis que você está acompanhando:</p>
+                <p>Boa notícia! Encontramos oportunidades de compra para os produtos que você está acompanhando:</p>
         """
         
         for opp in opportunities:
             store = opp.get('store', 'Loja')
             price = opp.get('price', 0)
-            product_name = opp.get('product_name', 'Tênis Asics Gel Resolution X')
+            product_name = opp.get('product_name', 'Máquina de Café Sage')
             url = opp.get('url', '#')
             reason = opp.get('reason', 'Preço atrativo')
+            in_stock = opp.get('in_stock', True)
+            stock_label = "✅ Em estoque" if in_stock else "❌ Esgotado"
             
             html += f"""
                 <div class="opportunity">
                     <p class="store">🏪 {store}</p>
                     <p><strong>{product_name}</strong></p>
-                    <p class="price">R$ {price:.2f}</p>
+                    <p class="price">€ {price:.2f}</p>
+                    <p><em>{stock_label}</em></p>
             """
             
             # Adicionar comparação com preço anterior se disponível
@@ -129,8 +132,8 @@ class EmailNotifier:
                     discount = ((prev_price - price) / prev_price) * 100
                     html += f"""
                         <p>
-                            Preço anterior: <span class="old-price">R$ {prev_price:.2f}</span><br>
-                            <span class="discount">💰 Economia de R$ {prev_price - price:.2f} ({discount:.1f}% OFF)</span>
+                            Preço anterior: <span class="old-price">€ {prev_price:.2f}</span><br>
+                            <span class="discount">💰 Economia de € {prev_price - price:.2f} ({discount:.1f}% OFF)</span>
                         </p>
                     """
             
@@ -184,14 +187,15 @@ class EmailNotifier:
         try:
             # Criar mensagem
             msg = MIMEMultipart('alternative')
-            msg['Subject'] = f'🎾 Alerta de Preço - {len(opportunities)} oportunidade(s) encontrada(s)!'
+            msg['Subject'] = f'☕ Alerta de Preço Sage - {len(opportunities)} oportunidade(s)!'
             msg['From'] = self.sender_email
             msg['To'] = self.recipient_email
             
             # Criar versão texto simples
-            text_content = "Alerta de Preço - Tênis Asics Gel Resolution X\n\n"
+            text_content = "Alerta de Preço - Máquinas Sage\n\n"
             for opp in opportunities:
-                text_content += f"{opp.get('store')}: R$ {opp.get('price', 0):.2f}\n"
+                text_content += f"{opp.get('store')}: € {opp.get('price', 0):.2f} ({'Em estoque' if opp.get('in_stock') else 'Esgotado'})\n"
+                text_content += f"Produto: {opp.get('product_name')}\n"
                 text_content += f"Link: {opp.get('url')}\n\n"
             
             # Criar versão HTML
@@ -229,10 +233,11 @@ class EmailNotifier:
         """
         test_opportunity = [{
             'store': 'Teste',
-            'product_name': 'Tênis Asics Gel Resolution X (TESTE)',
-            'price': 799.90,
+            'product_name': 'Sage Barista Express (TESTE)',
+            'price': 599.00,
             'url': 'https://www.google.com',
-            'reason': 'Este é um e-mail de teste do sistema de monitoramento'
+            'reason': 'Este é um e-mail de teste do sistema de monitoramento',
+            'in_stock': True
         }]
         
         return self.send_price_alert(test_opportunity)

@@ -52,13 +52,15 @@ class SeleniumScraper:
             # Reuse parsing logic
             price = self.parser._find_price(soup)
             name = self.parser._find_name(soup)
+            in_stock = self.parser._find_stock(soup)
             
             if price:
                 return {
                     'price': price,
                     'product_name': name or "Unknown Product",
                     'url': url,
-                    'currency': 'EUR'
+                    'currency': 'EUR',
+                    'in_stock': in_stock
                 }
             
             return None
